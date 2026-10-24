@@ -1,0 +1,36 @@
+#!/bin/bash
+# pre-push：①工具路径强制 Approved-by: human（总览 §8.9）②workspace status.md 跃迁合法性（CR-001）
+# 安装：bash hooks/setup.sh（core.hooksPath=hooks）
+TOOL_PATH_RE='^(skill/|console/|SPEC-|dev-swarm\.yaml|hooks/|README\.md|bin/)'
+ZERO=0000000000000000000000000000000000000000
+
+rc=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$ZERO" ] && continue   # 删除推送，跳过
+  if [ "$remote_sha" = "$ZERO" ]; then
+    # 新分支：只查跟踪远端还没有的提交（B-05：这已是 SHA 列表，禁止再 rev-list 展开祖先）
+    commits=$(git rev-list "$local_sha" --not --remotes 2>/dev/null || echo "$local_sha")
+  else
+    commits=$(git rev-list "$remote_sha..$local_sha")
+  fi
+  for commit in $commits; do
+    files=$(git -c core.quotepath=false show --name-only --pretty=format: "$commit" | grep -v '^$' || true)
+    # CR-001 门禁：workspace/**/status.md 跃迁合法性（数据提交同样拦截）
+    if echo "$files" | grep -qE '^workspace/.*/status\.md$'; then
+      python3 "$(git rev-parse --show-toplevel)/skill/scripts/check_status_push.py" "$commit" || rc=1
+    fi
+    # 状态单写门禁：workspace/**/_state/current.md 仅当前节点配置 agent 可改（check_current_push 按合法见证集判定）
+    if echo "$files" | grep -qE '^workspace/.*/_state/current\.md$'; then
+      python3 "$(git rev-parse --show-toplevel)/skill/scripts/check_current_push.py" "$commit" || rc=1
+    fi
+    tool_files=$(echo "$files" | grep -E "$TOOL_PATH_RE" || true)
+    [ -z "$tool_files" ] && continue
+    if ! git log -1 --pretty=%B "$commit" | grep -q 'Approved-by: human'; then
+      echo "❌ pre-push 拒绝：commit ${commit:0:8} 涉及工具路径但缺少 'Approved-by: human'"
+      echo "   文件：$(echo "$tool_files" | head -3 | tr '\n' ' ')"
+      echo "   处置：human 批准后 amend 补 trailer，或移至 tool 分支走合并"
+      rc=1
+    fi
+  done
+done
+exit $rc

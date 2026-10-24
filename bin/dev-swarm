@@ -1,0 +1,103 @@
+#!/bin/bash
+# dev-swarm console 快速启动（对齐 claude-board 用法）
+# 用法：dev-swarm [start|stop|restart|status|logs]  （默认 start）
+# 安装：sudo 不需要——软链 /usr/local/bin/dev-swarm -> 本文件（软链解析回仓内，随仓迭代）
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+REPO="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
+CONSOLE="$REPO/console"
+STATE="$CONSOLE/.local-state"
+PID_FILE="$STATE/dev-swarm.pid"
+LOG_FILE="$STATE/dev-swarm.log"
+PORT_API=4600
+PORT_WEB=5173
+
+mkdir -p "$STATE"
+
+is_running() {
+  [[ -f "$PID_FILE" ]] || return 1
+  local pid
+  pid="$(cat "$PID_FILE" 2>/dev/null)"
+  [[ -n "$pid" ]] || return 1
+  kill -0 "$pid" 2>/dev/null
+}
+
+port_pids() {
+  lsof -ti :"$PORT_API" 2>/dev/null
+  lsof -ti :"$PORT_WEB" 2>/dev/null
+}
+
+# 探活：--noproxy 防代理环境干扰；-m 6 覆盖 vite 首请求按需编译波动（实测 "/" 冷响应可达 ~3s）
+web_up() { curl -s --noproxy '*' -m 6 -o /dev/null "http://127.0.0.1:$PORT_WEB/"; }
+api_up() { curl -s --noproxy '*' -m 6 -o /dev/null "http://127.0.0.1:$PORT_API/api/requirements"; }
+
+cmd_start() {
+  if is_running; then
+    echo "已在运行 (PID $(cat "$PID_FILE")) — http://127.0.0.1:$PORT_WEB"
+    return 0
+  fi
+  if [[ -n "$(port_pids)" ]]; then
+    echo "端口 $PORT_API/$PORT_WEB 已被占用（console 在跑但非本脚本管理）"
+    echo "先执行: dev-swarm stop   或手动: lsof -ti :$PORT_API -ti :$PORT_WEB | xargs kill"
+    return 1
+  fi
+  [[ -d "$CONSOLE/node_modules" ]] || { (cd "$CONSOLE" && npm install) || { echo "npm install 失败"; return 1; }; }
+  echo "启动 dev-swarm console（server $PORT_API + client $PORT_WEB，均绑 127.0.0.1）..."
+  (cd "$CONSOLE" && nohup npm run dev > "$LOG_FILE" 2>&1 & echo $! > "$PID_FILE")
+  for _ in $(seq 1 30); do
+    web_up && break
+    sleep 1
+  done
+  if web_up; then
+    echo "✅ 已启动 — http://127.0.0.1:$PORT_WEB"
+    echo "日志: $LOG_FILE  |  停止: dev-swarm stop  |  状态: dev-swarm status"
+  else
+    echo "❌ 30 次探活内页面未就绪 — 查日志: tail -50 $LOG_FILE"
+    cmd_stop >/dev/null 2>&1
+    return 1
+  fi
+}
+
+cmd_stop() {
+  if is_running; then kill "$(cat "$PID_FILE")" 2>/dev/null; fi
+  local pids
+  pids="$(port_pids | sort -u)"
+  [[ -n "$pids" ]] && echo "$pids" | xargs kill 2>/dev/null
+  sleep 1
+  pids="$(port_pids | sort -u)"
+  [[ -n "$pids" ]] && echo "$pids" | xargs kill -9 2>/dev/null
+  rm -f "$PID_FILE"
+  echo "已停止"
+}
+
+cmd_status() {
+  if is_running || [[ -n "$(port_pids)" ]]; then
+    echo "console 运行中$( [[ -f "$PID_FILE" ]] && echo " (PID $(cat "$PID_FILE"))" )"
+    web_up && echo "页面: http://127.0.0.1:$PORT_WEB ✅" || echo "页面: 未响应 ❌"
+    api_up && echo "API : http://127.0.0.1:$PORT_API ✅" || echo "API : 未响应 ❌"
+  else
+    echo "未运行"
+    return 1
+  fi
+}
+
+cmd_logs() {
+  [[ -f "$LOG_FILE" ]] || { echo "暂无日志"; exit 1; }
+  tail -f "$LOG_FILE"
+}
+
+case "${1:-start}" in
+  start)   cmd_start ;;
+  stop)    cmd_stop ;;
+  restart) cmd_stop; cmd_start ;;
+  status)  cmd_status ;;
+  logs)    cmd_logs ;;
+  *)
+    echo "用法: dev-swarm {start|stop|restart|status|logs}"
+    exit 1
+    ;;
+esac

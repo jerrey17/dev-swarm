@@ -1,0 +1,11 @@
+# accounts.local.yaml 样板 — console 登录账号（真值文件在 console/.local-state/accounts.local.yaml，.gitignore *.local.yaml 已覆盖，不入库）
+# 发放：node console/server/accounts.mjs add <账号>（X02/D002：管理员发放，不开放自助注册；改密=删该行后重新 add）
+# 机制（03 §五）：盐=16B hex；hash=scryptSync(密码, 盐, 64) hex；auth.ts 每次登录重读本文件，发放后免重启生效
+# H10：本文件不入 config-files 白名单，配置中心不可见；example 占位值不含任何可用凭据
+accounts: []
+# 形态样板（占位说明，非可用凭据）：
+# accounts:
+#   - account: someone
+#     salt: "32位hex随机盐"
+#     hash: "128位hex scrypt散列"
+#     note: "发放于 YYYY-MM-DD"

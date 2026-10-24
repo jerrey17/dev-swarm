@@ -1,0 +1,20 @@
+# links.yaml — 研发入口配置（F09/D003-v3；09/BUG-001~003 schema v2）可选文件，缺失=console 全类目待办
+# 位置：workspace/{需求名}/_state/links.yaml ｜ 外链单一存储：抽屉/行上与详情头 TAPD 芯片都读本文件（BUG-002）
+# 备忘正文不再抄 URL（非地址备注保留）；已有正文地址由修复批迁入，parseTapdUrl 仅未迁移需求只读回退
+# 维护：human 分阶段提供、cc-dev 代填（随节点提交）；空值/缺失=console 挂「待办」，不隐藏类目
+# 类目（BUG-003 后）：需求级 tapd/dev_plan/test_env(含 cluster)/wiki 多条；服务级 pipeline+wiki
+# SQL/Saturn/Apollo/监控入口在研发计划站点上配置，不在本文件、不在抽屉
+tapd:
+  url: ""                 # TAPD 需求单（toolchain 无单时留空=待办）
+dev_plan:
+  url: ""                 # 研发计划（示例：https://example.com/dev-plan/…）
+test_env:
+  url: ""                 # 测试环境入口页
+  cluster: ""             # 集群名（纯文本，随链接展示）
+wiki:                      # 需求级多条（name+url；BUG-001），空列表=待办
+  - name: ""               # 如 总览 / 架构边界
+    url: ""
+services:                  # 服务级（键=services.yaml 的 name）
+  服务名示例:
+    pipeline: ""           # 该服务流水线
+    wiki: ""               # 该服务 wiki 页

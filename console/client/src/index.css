@@ -1,0 +1,165 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── 皮肤系统：通过 CSS 变量定义配色（迁移自 claude-board，样式同等） ── */
+
+:root {
+  /* 默认蓝（Default Blue） */
+  --skin-primary: 59 130 246;       /* blue-500 */
+  --skin-primary-light: 219 234 254; /* blue-100 */
+  --skin-primary-dark: 37 99 235;   /* blue-600 */
+  --skin-accent: 96 165 250;        /* blue-400 */
+
+  --skin-sidebar-bg: 255 255 255;
+  --skin-sidebar-border: 229 231 235;
+  --skin-content-bg: 249 250 251;
+  --skin-card-bg: 255 255 255;
+  --skin-card-border: 229 231 235;
+  --skin-text: 17 24 39;
+  --skin-text-secondary: 107 114 128;
+  --skin-text-muted: 156 163 175;
+}
+
+.dark {
+  --skin-sidebar-bg: 3 7 18;
+  --skin-sidebar-border: 31 41 55;
+  --skin-content-bg: 3 7 18;
+  --skin-card-bg: 17 24 39;
+  --skin-card-border: 31 41 55;
+  --skin-text: 243 244 246;
+  --skin-text-secondary: 156 163 175;
+  --skin-text-muted: 75 85 99;
+}
+
+/* ── 极客绿（Hacker Green） ── */
+[data-skin="green"] {
+  --skin-primary: 16 185 129;       /* emerald-500 */
+  --skin-primary-light: 209 250 229; /* emerald-100 */
+  --skin-primary-dark: 5 150 105;   /* emerald-600 */
+  --skin-accent: 52 211 153;        /* emerald-400 */
+}
+[data-skin="green"].dark {
+  --skin-sidebar-bg: 2 6 3;
+  --skin-content-bg: 2 6 3;
+  --skin-card-bg: 6 20 13;
+  --skin-card-border: 20 50 35;
+}
+
+/* ── 商务紫（Business Purple） ── */
+[data-skin="purple"] {
+  --skin-primary: 139 92 246;       /* violet-500 */
+  --skin-primary-light: 237 233 254; /* violet-100 */
+  --skin-primary-dark: 124 58 237;  /* violet-600 */
+  --skin-accent: 167 139 250;       /* violet-400 */
+}
+[data-skin="purple"].dark {
+  --skin-sidebar-bg: 5 3 15;
+  --skin-content-bg: 5 3 15;
+  --skin-card-bg: 15 10 30;
+  --skin-card-border: 35 25 60;
+}
+
+/* ── 暖橙（Warm Orange） ── */
+[data-skin="orange"] {
+  --skin-primary: 249 115 22;       /* orange-500 */
+  --skin-primary-light: 255 237 213; /* orange-100 */
+  --skin-primary-dark: 234 88 12;   /* orange-600 */
+  --skin-accent: 251 146 60;        /* orange-400 */
+}
+[data-skin="orange"].dark {
+  --skin-sidebar-bg: 12 5 2;
+  --skin-content-bg: 12 5 2;
+  --skin-card-bg: 25 12 5;
+  --skin-card-border: 55 30 15;
+}
+
+/* ── 玫瑰（Rose Pink） ── */
+[data-skin="rose"] {
+  --skin-primary: 244 63 94;        /* rose-500 */
+  --skin-primary-light: 255 228 230; /* rose-100 */
+  --skin-primary-dark: 225 29 72;   /* rose-600 */
+  --skin-accent: 251 113 133;       /* rose-400 */
+}
+[data-skin="rose"].dark {
+  --skin-sidebar-bg: 12 2 5;
+  --skin-content-bg: 12 2 5;
+  --skin-card-bg: 25 8 15;
+  --skin-card-border: 55 20 30;
+}
+
+/* ── 皮肤变量映射到实用类 ── */
+
+.skin-bg-sidebar { background-color: rgb(var(--skin-sidebar-bg)); }
+.skin-bg-content { background-color: rgb(var(--skin-content-bg)); }
+.skin-bg-card { background-color: rgb(var(--skin-card-bg)); }
+.skin-border { border-color: rgb(var(--skin-card-border)); }
+.skin-border-sidebar { border-color: rgb(var(--skin-sidebar-border)); }
+.skin-text { color: rgb(var(--skin-text)); }
+.skin-text-secondary { color: rgb(var(--skin-text-secondary)); }
+.skin-text-muted { color: rgb(var(--skin-text-muted)); }
+
+.skin-primary { color: rgb(var(--skin-primary)); }
+.skin-primary-bg { background-color: rgb(var(--skin-primary)); }
+.skin-primary-bg-light { background-color: rgb(var(--skin-primary-light)); }
+.skin-primary-border { border-color: rgb(var(--skin-primary)); }
+
+.skin-nav-active {
+  background-color: rgb(var(--skin-primary-light));
+  color: rgb(var(--skin-primary-dark));
+}
+.dark .skin-nav-active {
+  background-color: rgb(var(--skin-primary) / 0.15);
+  color: rgb(var(--skin-accent));
+}
+
+.skin-btn-primary {
+  background-color: rgb(var(--skin-primary));
+  color: white;
+}
+.skin-btn-primary:hover {
+  background-color: rgb(var(--skin-primary-dark));
+}
+
+/* ── 细滚动条 ── */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--skin-card-border)) transparent;
+}
+.thin-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+.thin-scroll::-webkit-scrollbar-track { background: transparent; }
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgb(var(--skin-card-border));
+  border-radius: 9999px;
+}
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--skin-text-muted));
+}
+.thin-scroll::-webkit-scrollbar-corner { background: transparent; }
+
+/* ── Animations ── */
+@keyframes slide-in-right {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease-out;
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* ── Heading flash (click-to-jump highlight) ── */
+@keyframes heading-flash {
+  0%   { background-color: rgba(59, 130, 246, 0.18); }
+  60%  { background-color: rgba(59, 130, 246, 0.10); }
+  100% { background-color: transparent; }
+}
+.heading-flash {
+  animation: heading-flash 1.8s ease-out;
+  border-radius: 0.25rem;
+}

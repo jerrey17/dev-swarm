@@ -1,0 +1,41 @@
+# dev-swarm 仓级主配置（三级分层第 2 级；第 1 级=skill/config/defaults.yaml，第 3 级=workspace/{需求}/_state/override.yaml）
+# 覆盖规则：深合并，需求级 > 仓级 > 内置
+version: 1
+workspace:
+  remote: https://github.com/jerrey17/dev-swarm.git
+  branch: main
+  local: .
+  push_policy: local-only     # F03/D003：local-only | collaborative（SPEC-提交规约 §1/§1.1；切换走 SPEC-变更流程）
+pipeline:
+  profile: toolchain          # 默认 profile；需求级可覆盖为 java-business
+agents:
+  - { id: cc-dev,    runtime: claude-code }
+  - { id: cursor-qa, runtime: cursor }
+  - { id: human,     runtime: human }
+nodes:
+  stages:                     # 全局阶段库（order=库编号 01~14；profile phases=链=库子集+顺序，编号不重排；D002）
+                               # gate=兜底（F07/D005）：需求 profile 的 advance_gates（skill/pipeline/{profile}.yaml）优先，本表仅在 profile 未覆盖该阶段时生效
+    # gate 语义（V2-R3/D004）：阶段产物完成后 auto=按衔接协议直接推进；human=停等 human 确认才可进下一阶段
+    需求分析: { order: 1, agent: cc-dev, gate: auto }
+    服务拆分: { order: 2, agent: cc-dev, gate: auto }
+    技术方案: { order: 3, agent: cc-dev, gate: auto }
+    方案审查: { order: 4, agent: cursor-qa, gate: auto }    # 04：方案/拆分/需求三方审查防偏离
+    开发编码: { order: 5, agent: cc-dev, gate: human }      # 05：硬卡（03 放行后仍须 human 拍板，R3 无歧义项）
+    代码审查: { order: 6, agent: cursor-qa, gate: auto }    # 06：代码质量/需求完成度/代码路径；环境实跑归 09
+    单元测试: { order: 7, agent: cc-dev, gate: auto }
+    提测: { order: 8, agent: cc-dev, gate: auto }           # 08：文档与部署信息准备（D004 定稿 auto；部署实例仍归 human 子节点）
+    Agent自动化测试: { order: 9, agent: cursor-qa, gate: auto }  # 09：测试主导（原 bug修复重组）
+    发布CheckList: { order: 10, agent: cc-dev, gate: human } # 10：发布动作本身 human 执行（D004 定稿）
+    复盘: { order: 11, agent: cc-dev, gate: auto }
+    知识库更新: { order: 12, agent: cc-dev, gate: auto }
+    编写脚本和验证脚本: { order: 13, agent: cc-dev }   # data-script 链专属；human 门禁由 data-script advance_gates 表达
+    发布验证与观测: { order: 14, agent: cursor-qa, gate: human }   # java-business 链专属（链位=发布CheckList 后、复盘前，由 java phases 书写序定）；human 通知某项已配置/已发布→cursor 只验被通知项；收口=human 确认全部发布项已通知并验证
+  subnodes:
+    Agent自动化测试/修复: { agent: cc-dev }    # 解 bug 仍是开发
+    Agent自动化测试/执行: { agent: cursor-qa } # 用例执行/复验
+    Agent自动化测试/部署: { agent: human }     # 部署/Apollo/实例填写
+    发布验证与观测/修复: { agent: cc-dev }     # 发布验证发现的问题，修复仍归开发（台账复用 bug 三文件+reverify，K4）
+knowledge:
+  - { project: default, type: local-path, ref: "" }
+notify:
+  reverify: { channel: qiwei-webhook, target: "{webhook-url}" }   # 真值在 console/.local-state/console.config.yaml

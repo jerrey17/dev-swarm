@@ -1,0 +1,39 @@
+# dev-swarm 配置默认值（三级分层第 1 级；被仓级 dev-swarm.yaml 与需求级 _state/override.yaml 深合并覆盖）
+# 推进门禁取值优先级（F07/D005）：需求 profile 的 advance_gates（skill/pipeline/{profile}.yaml）
+#   > 仓级 nodes.stages.*.gate（dev-swarm.yaml，兜底） > 本文件 nodes.stages.*.gate（第 1 级内置）
+version: 1
+workspace:
+  remote: ""                  # 由仓级提供
+  branch: feature-acknowledge
+  local: ""                   # 由仓级提供
+  push_policy: local-only     # local-only | collaborative（SPEC-提交规约 §1/§1.1；切换走 SPEC-变更流程）
+pipeline:
+  profile: toolchain
+agents:
+  - { id: cc-dev,    runtime: claude-code }
+  - { id: cursor-qa, runtime: cursor }
+  - { id: human,     runtime: human }
+nodes:
+  stages:
+    需求分析: { agent: cc-dev, gate: auto }
+    服务拆分: { agent: cc-dev, gate: auto }
+    技术方案: { agent: cc-dev, gate: auto }
+    方案审查: { agent: cursor-qa, gate: auto }
+    开发编码: { agent: cc-dev, gate: human }
+    代码审查: { agent: cursor-qa, gate: auto }
+    单元测试: { agent: cc-dev, gate: auto }
+    提测: { agent: cc-dev, gate: auto }
+    Agent自动化测试: { agent: cursor-qa, gate: auto }
+    发布CheckList: { agent: cc-dev, gate: human }
+    复盘: { agent: cc-dev, gate: auto }
+    知识库更新: { agent: cc-dev, gate: auto }
+  subnodes:
+    Agent自动化测试/修复: { agent: cc-dev }
+    Agent自动化测试/执行: { agent: cursor-qa }
+    Agent自动化测试/部署: { agent: human }
+knowledge:
+  - { project: default, type: local-path, ref: "" }
+notify:
+  reverify: { channel: qiwei-webhook, target: "" }
+console:
+  pollIntervalSeconds: 30

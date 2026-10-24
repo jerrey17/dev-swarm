@@ -1,0 +1,6 @@
+#!/bin/bash
+# pre-commit（F03/D003-v3）：点名 add——workspace/ 多需求混存拒 commit（P3 连坐防线，add/commit 时拦而非 push 时）
+# 豁免：DS_ALLOW_HUMAN=1（human 特批合并场景）
+[ "$DS_ALLOW_HUMAN" = "1" ] && exit 0
+python3 "$(git rev-parse --show-toplevel)/skill/scripts/check_staged.py" || exit 1
+exit 0

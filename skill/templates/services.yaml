@@ -1,0 +1,13 @@
+# services.yaml — 需求级服务配置（模板：skill/templates/services.yaml）
+# 初始化=复制到 workspace/{需求名}/services.yaml 并填空；禁止增删一级结构、禁止现场发明字段
+# 消费方：console/server/parser.ts parseServices（字段：name/appid/local_path/role，note 为人读备注）
+# role 枚举（SPEC-目录规范 §3）：主责 | 协同 | 参考
+# 顶层可选 kind（profile场景定制 D002）：toolchain | java-business | data-script
+#   建项时 human 显式声明，优先于 check_workspace R1~R3 规则推断（开好头原则：判不定推 human，禁止 agent 瞎猜）
+kind: ""
+services:
+  - name: ""              # 服务/仓库名（必填）
+    appid: ""             # 部署 appid；无部署单元写 ""（如 toolchain 类需求）
+    local_path: ""        # 本地代码绝对路径（必填；阶段产物按此定位代码）
+    role: 主责            # 主责 | 协同 | 参考
+    note: ""              # 备注：改动范围/提交规约特殊项（可选）

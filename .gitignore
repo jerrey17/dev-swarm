@@ -1,0 +1,20 @@
+# 本地凭据（脱敏红线：真值不入库；example 模板入库）
+*.local.yaml
+.secrets*
+console/.local-state/console.config.yaml
+console/.local-state/notified.json
+
+# console 构建产物
+node_modules/
+console/client/dist/
+console/dist/
+
+# 系统
+.DS_Store
+*.log
+console/.local-state/dev-swarm.pid
+
+# GitNexus 自动生成（不入库，索引本仓时重新产生）
+AGENTS.md
+CLAUDE.md
+.claude/

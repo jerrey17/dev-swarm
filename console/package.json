@@ -1,0 +1,24 @@
+{
+  "name": "dev-swarm-console",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n server,client \"tsx watch server/index.ts\" \"npm --prefix client run dev\"",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:client": "npm --prefix client run dev",
+    "start": "tsx server/index.ts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p client/tsconfig.json"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
