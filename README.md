@@ -17,6 +17,8 @@
 
 ## 快速开始
 
+配置、两个克隆、看板后端和阶段技能的安装步骤见 [快速启动.md](快速启动.md)。
+
 ```bash
 git clone https://github.com/jerrey17/dev-swarm.git
 bash hooks/setup.sh        # 安装 pre-push 拦截（core.hooksPath=hooks）
