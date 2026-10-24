@@ -17,7 +17,7 @@
 
 ## 快速开始
 
-配置、两个克隆、看板后端和阶段技能的安装步骤见 [快速启动.md](快速启动.md)。
+配置、两个克隆、看板后端、页面怎么读、阶段技能的安装步骤见 [快速启动.md](快速启动.md)。
 
 ```bash
 git clone https://github.com/jerrey17/dev-swarm.git
